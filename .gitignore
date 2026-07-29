@@ -20,11 +20,66 @@
 # production
 /build
 
+# caches
+.turbo/
+.cache/
+
 # misc
 .DS_Store
 *.pem
+*.tgz
 
-# debug
+# Windows shell cruft (this repo is developed on Windows)
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS resource forks, for anyone cloning on a Mac
+._*
+.AppleDouble
+.LSOverride
+
+# editors / IDEs
+# Keep shared workspace config committable, ignore everything personal.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# agent tooling
+# Local, per-developer overrides — must not be committed. (Previously this was
+# only covered by a user-level global ignore, so a fresh clone would have
+# committed it.)
+.claude/settings.local.json
+
+# Prisma's agent skills, installed by `npx prisma init` (~0.5 MB of vendor docs
+# under .claude/skills, plus .agents/ and .windsurf/ copies it also creates).
+# Not committed because:
+#   1. They are regenerable — `npx prisma init` lays them down again.
+#   2. Its .claude/skills and .windsurf/skills are ABSOLUTE symlinks into
+#      .agents/skills. With core.symlinks=false (the Windows default) git commits
+#      those as text files containing "/c/Nikhil@pbn/pbn-proposal/...", which
+#      resolves to nothing on another machine, in CI, or after moving this folder.
+# .agents/ and .windsurf/ have been deleted from this repo; the rules stay so a
+# future `prisma init` doesn't quietly stage them again.
+# Shared, hand-written .claude config (settings.json, commands, project skills)
+# is deliberately NOT covered and stays committable.
+/.agents/
+/.windsurf/
+/.claude/skills/
+/skills-lock.json
+
+# debug / logs
+*.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -32,6 +87,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +95,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma
+# The client is generated from prisma/schema.prisma on postinstall, so it is
+# build output rather than source.
+/src/generated/prisma/
+#
+# Do NOT ignore prisma/migrations/ — migration history is source of truth for
+# the database and has to be committed and deployed.

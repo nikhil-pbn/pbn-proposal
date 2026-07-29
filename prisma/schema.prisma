@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Proposal {
+  id           String         @id @default(uuid()) @db.Uuid
+  /// Public URL segment, e.g. "new-horizons-noah-a83dj2". Unique so /lp/[slug] resolves to exactly one proposal.
+  slug         String         @unique @db.VarChar(255)
+  repName      String         @map("rep_name") @db.VarChar(255)
+  repEmail     String         @map("rep_email") @db.VarChar(255)
+  /// Extracted by Claude from the transcript; also mirrored into proposal_json.
+  practiceName String         @map("practice_name") @db.VarChar(255)
+  contactName  String         @map("contact_name") @db.VarChar(255)
+  /// Raw sales call transcript. Internal only — never rendered on the public page.
+  transcript   String
+  /// The whole proposal as structured JSON. Never HTML. Shape is enforced by
+  /// proposalContentSchema in src/types/proposal.ts before any write.
+  proposalJson Json           @map("proposal_json")
+  status       ProposalStatus @default(Draft)
+  /// Bumped on every save, so a stale editor tab can be detected later.
+  version      Int            @default(1)
+  publishedAt  DateTime?      @map("published_at") @db.Timestamptz(3)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("proposals")
+}
+
+/// Internal reporting only. Written once per successful generation and never
+/// updated, so it stays a faithful record of what was sent and when. Deliberately
+/// has no foreign key to proposals — it must survive a proposal being deleted.
+model ProposalTracking {
+  id           String   @id @default(uuid()) @db.Uuid
+  /// The Account Executive — sourced from the rep name on the form.
+  aeName       String   @map("ae_name") @db.VarChar(255)
+  practiceName String   @map("practice_name") @db.VarChar(255)
+  contactName  String   @map("contact_name") @db.VarChar(255)
+  proposalUrl  String   @map("proposal_url") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([aeName])
+  @@map("proposal_tracking")
+}
+
+enum ProposalStatus {
+  Draft
+  Published
+}
