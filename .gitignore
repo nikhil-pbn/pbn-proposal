@@ -54,27 +54,31 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-# agent tooling
-# Local, per-developer overrides — must not be committed. (Previously this was
-# only covered by a user-level global ignore, so a fresh clone would have
-# committed it.)
-.claude/settings.local.json
-
-# Prisma's agent skills, installed by `npx prisma init` (~0.5 MB of vendor docs
-# under .claude/skills, plus .agents/ and .windsurf/ copies it also creates).
-# Not committed because:
-#   1. They are regenerable — `npx prisma init` lays them down again.
-#   2. Its .claude/skills and .windsurf/skills are ABSOLUTE symlinks into
-#      .agents/skills. With core.symlinks=false (the Windows default) git commits
-#      those as text files containing "/c/Nikhil@pbn/pbn-proposal/...", which
-#      resolves to nothing on another machine, in CI, or after moving this folder.
+# agent tooling — none of this belongs in a shared repo
+#
+# .claude/ holds per-developer AI-assistant config, not project config. Its
+# settings.json is a permissions allowlist: it grants no new capability (anyone
+# can already run `npm run build` in a terminal), it only suppresses confirmation
+# prompts inside one tool. Committing it would decide on every teammate's behalf
+# what their agent may run unprompted — that is a personal-machine setting, so it
+# stays on personal machines. It also accumulates absolute paths like
+# C:/Users/<name>/... and one-off session ids, which are pure noise to everyone else.
+#
+# .claude/skills/ is ~0.5 MB of Prisma vendor docs from `npx prisma init`. Also
+# regenerable, and its skills were ABSOLUTE symlinks into .agents/skills — with
+# core.symlinks=false (the Windows default) git commits those as text files
+# containing "/c/Nikhil@pbn/pbn-proposal/...", which resolves to nothing on another
+# machine, in CI, or after moving this folder.
+#
 # .agents/ and .windsurf/ have been deleted from this repo; the rules stay so a
 # future `prisma init` doesn't quietly stage them again.
-# Shared, hand-written .claude config (settings.json, commands, project skills)
-# is deliberately NOT covered and stays committable.
+#
+# NOTE: AGENTS.md and CLAUDE.md are deliberately NOT ignored. They document a real
+# project constraint (this Next.js version differs from model training data), are
+# read by several tools rather than one, and grant no permissions.
+/.claude/
 /.agents/
 /.windsurf/
-/.claude/skills/
 /skills-lock.json
 
 # debug / logs
